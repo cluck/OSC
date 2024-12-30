@@ -670,12 +670,12 @@ void OSCMessage::decodeData(uint8_t incomingByte){
                     break;
                 case 'r':
                     if (incomingBufferSize == 4){
-			oscrgba_t rgba;
-			rgba.r = incomingBuffer[0];
-			rgba.g = incomingBuffer[1];
-			rgba.b = incomingBuffer[2];
-			rgba.a = incomingBuffer[3];
-                        set(i, rgba);
+			union {
+                            oscrgba_t rgba;
+                            uint8_t b[4];
+                        } u;
+			memcpy(u.b, incomingBuffer, 4);
+                        set(i, u.rgba);
                         clearIncomingBuffer();
                     }
                     break;
