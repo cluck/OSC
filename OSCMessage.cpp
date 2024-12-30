@@ -4,7 +4,7 @@
  the University of California (Regents).
 
  Permission to use, copy, modify, distribute, and distribute modified versions
- of this software and its documentation without fee and without a signed
+ of this software and its documentation without fee and without a signed`
  licensing agreement, is hereby granted, provided that the above copyright
  notice, this paragraph and the following two paragraphs appear in all copies,
  modifications, and distributions.
@@ -582,14 +582,23 @@ OSCMessage& OSCMessage::send(Print &p){
             d = BigEndian(time.fractionofseconds);
             ptr = (uint8_t *)    &d;
             p.write(ptr, 4);
-
-        } else if (datum->type == 'T' || datum->type == 'F')
-                    { }
-        else { // float or int
+ 	} else if (datum->type == 'r'){
+	    oscrgba_t rgba =  datum->data.rgba;
+	    p.write(rgba.r, 1);
+	    p.write(rgba.g, 1);
+	    p.write(rgba.b, 1);
+	    p.write(rgba.a, 1);	    
+        } else if (datum->type == 'i'){
             uint32_t i = BigEndian(datum->data.i);
             uint8_t * ptr = (uint8_t *) &i;
             p.write(ptr, datum->bytes);
-        }
+        } else if (datum->type == 'f'){
+            float f = BigEndian(datum->data.f);
+            uint8_t * ptr = (uint8_t *) &f;
+            p.write(ptr, datum->bytes);
+        // } else if (datum->type == 'T' || datum->type == 'F'){
+	} else { // unknown
+       }
     }
     return *this;
 }
@@ -661,14 +670,12 @@ void OSCMessage::decodeData(uint8_t incomingByte){
                     break;
                 case 'r':
                     if (incomingBufferSize == 4){
-                        //parse the buffer as a rgba
-                        union {
-                            oscrgba_t rgba;
-                            uint8_t b[4];
-                        } u;
-                        memcpy(u.b, incomingBuffer, 4);
-                        oscrgba_t dataVal = BigEndian(u.rgba);
-                        set(i, dataVal);
+			oscrgba_t rgba;
+			rgba.r = incomingBuffer[0];
+			rgba.g = incomingBuffer[1];
+			rgba.b = incomingBuffer[2];
+			rgba.a = incomingBuffer[3];
+                        set(i, rgba);
                         clearIncomingBuffer();
                     }
                     break;
